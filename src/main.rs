@@ -1,32 +1,33 @@
-use text_io::read;
 use std::io::*;
+use text_io::read;
 
 
-
-fn interpret(stack: &mut Vec<i32>, line: String) {
+fn interpret(stack: &mut Vec<i32>, line: String) -> Option<String> {
     for word in line.split_whitespace() {
         if let Ok(num) = word.parse() {
             stack.push(num);
         } else {
             match word {
                 "dup" => {
-                    stack.push(*stack.last().unwrap());
+                    stack.push(*stack.last()?);
                 }
                 "+" => {
-                    let a = stack.pop().unwrap();
-                    let b = stack.pop().unwrap();
+                    let a = stack.pop()?;
+                    let b = stack.pop()?;
                     stack.push(a + b);
                 }
                 "p" => {
-                    println!("{}", stack.last().unwrap());
+                    println!("{}", stack.last()?);
                 }
                 _ => {
+                    return None
                 }
             }
         }
-        println!("{:?}", stack);
     }
+    Some(format!("{:?}", stack))
 }
+
 
 fn main() {
     let mut stack = Vec::<i32>::new();
@@ -35,6 +36,9 @@ fn main() {
         let _ = stdout().flush();
         let line: String = read!("{}\n");
       
-        interpret(&mut stack, line);
+        match interpret(&mut stack, line) {
+            Some(output) => println!("{}", output),
+            None => break,
+        }
     }
 }
