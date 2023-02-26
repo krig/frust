@@ -88,9 +88,7 @@ impl Vm {
         }
         while !callstack.is_empty() {
             while let Ok(word) = popc(&mut callstack) {
-                if let Ok(num) = word.parse::<i32>() {
-                    self.data.push(Data::Int(num));
-                } else if word == ":" {
+                if word == ":" {
                     let procname = popc(&mut callstack)?.clone();
                     let mut proc: Vec<String> = vec![];
                     while let Ok(subword) = popc(&mut callstack) {
@@ -117,6 +115,8 @@ impl Vm {
                 } else if self.proc.contains_key(word) {
                     let proc = self.proc.get(word).ok_or("Proc not found")?;
                     callstack.push(Program::from_stream(proc.to_vec()));
+                } else if let Ok(num) = word.parse::<i32>() {
+                    self.data.push(Data::Int(num));
                 } else {
                     match word.as_str() {
                         "dup" => {
