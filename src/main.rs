@@ -54,6 +54,13 @@ impl Data {
             _ => None,
         }
     }
+
+    fn as_string(&self) -> Option<&String> {
+        match self {
+            Data::Str(x) => Some(x),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for Data {
@@ -92,6 +99,8 @@ impl Vm {
                     let procname = popc(&mut callstack)?.clone();
                     let mut proc: Vec<String> = vec![];
                     while let Ok(subword) = popc(&mut callstack) {
+                        // todo: implement immediate words
+                        // todo: (do, loop, begin, ...)
                         if subword == ";" {
                             break;
                         } else {
@@ -129,13 +138,78 @@ impl Vm {
                             self.data.push(a);
                             self.data.push(b);
                         }
+                        "nip" => {
+                            let a = self.data.pop().ok_or("Stack underflow")?;
+                            let _ = self.data.pop().ok_or("Stack underflow")?;
+                            self.data.push(a);
+                        }
                         "drop" => {
                             self.data.pop().ok_or("Stack underflow")?;
+                        }
+                        "rot" => {
+                            let x3 = self.data.pop().ok_or("Stack underflow")?;
+                            let x2 = self.data.pop().ok_or("Stack underflow")?;
+                            let x1 = self.data.pop().ok_or("Stack underflow")?;
+                            self.data.push(x2);
+                            self.data.push(x3);
+                            self.data.push(x1);
+                        }
+                        "false" => {
+                            self.data.push(Data::Int(0));
+                        }
+                        "true" => {
+                            self.data.push(Data::Int(-1));
                         }
                         "+" => {
                             let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
                             let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
                             self.data.push(Data::Int(a + b));
+                        }
+                        "-" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(a - b));
+                        }
+                        "*" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(a * b));
+                        }
+                        "/" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(a / b));
+                        }
+                        "=" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(if a == b { -1 } else { 0 }));
+                        }
+                        "<>" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(if a != b { -1 } else { 0 }));
+                        }
+                        ">" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(if b > a { -1 } else { 0 }));
+                        }
+                        "<" => {
+                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            self.data.push(Data::Int(if b < a { -1 } else { 0 }));
+                        }
+                        "number" => {
+                            if let Ok(a) = self.data.pop().ok_or("Stack underflow")?.as_string().ok_or("Type mismatch")?.parse::<i32>() {
+                                self.data.push(Data::Int(a));
+                            } else {
+                                return Err("Not a number");
+                            }
+                        }
+                        "." => {
+                            let a = self.data.pop().ok_or("Stack underflow")?;
+                            println!("{} ", a);
                         }
                         "print" => {
                             println!("{}", self.data.last().ok_or("Nothing to print")?);
