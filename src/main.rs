@@ -161,43 +161,43 @@ impl Vm {
                             self.data.push(Data::Int(-1));
                         }
                         "+" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(a + b));
                         }
                         "-" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(a - b));
                         }
                         "*" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(a * b));
                         }
                         "/" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(a / b));
                         }
                         "=" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(if a == b { -1 } else { 0 }));
                         }
                         "<>" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(if a != b { -1 } else { 0 }));
                         }
                         ">" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(if b > a { -1 } else { 0 }));
                         }
                         "<" => {
-                            let a: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
-                            let b: i32 = self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?;
+                            let a: i32 = self.pop_i32()?;
+                            let b: i32 = self.pop_i32()?;
                             self.data.push(Data::Int(if b < a { -1 } else { 0 }));
                         }
                         "number" => {
@@ -223,6 +223,10 @@ impl Vm {
             callstack.pop();
         }
         Ok(format!("{:?}", self.data))
+    }
+
+    fn pop_i32(&mut self) -> Result<i32, &'static str> {
+        Ok(self.data.pop().ok_or("Stack underflow")?.as_int().ok_or("Type mismatch")?)
     }
 
     fn interpret_line(&mut self, line: String) {
